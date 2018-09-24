@@ -16,6 +16,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from api.views import Register, QRcodeScanner, viewcustomer, editcustomer, buy
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('register/', Register),
+    path('qrcode/', QRcodeScanner),
+    path('viewcustomer/', viewcustomer),
+    path('editcustomer/', editcustomer),
+    path('product/', buy),
 ]
