@@ -16,6 +16,7 @@ class customer(models.Model):
     digits = models.CharField(max_length=13, unique=True, null=True)
     inviter = models.ForeignKey('self', null=True, blank=True, on_delete=models.SET_DEFAULT, default=1)
     contact_by = models.ForeignKey(contact, null=True, on_delete=models.SET_NULL)
+    discount = models.CharField(max_length=10,default="0")
     def __str__(self):
         return self.name
 
@@ -27,4 +28,5 @@ class product(models.Model):
     discount = models.CharField(max_length=9, default=0)
     gift_d = models.BooleanField(default=False)
     use = models.BooleanField(default=False)
+    name = models.CharField(max_length=100, null=True)
 
