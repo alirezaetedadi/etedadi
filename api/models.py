@@ -29,4 +29,5 @@ class product(models.Model):
     gift_d = models.BooleanField(default=False)
     use = models.BooleanField(default=False)
     name = models.CharField(max_length=100, null=True)
+    digits = models.CharField(max_length=13, null=True)
 

@@ -17,7 +17,7 @@ Html = "<h1 style='color:red;text-align:center;padding-top:100px'> ALIREZA ETEDA
 def Register(request):
     if request.method == 'POST':
         req = request.POST
-        # action:create_customer - id:user_id - name:name - inviter:user_id - digits:digits - contact_id:0/1/2
+        # action:create_customer - id:user_id - name:name - inviter:user_id - digits:digits - contact_id:0/1/2 -old_customer:True/False
 
         # ساخت مشتری جدید
         if req['action'] == 'create_customer':
@@ -25,27 +25,31 @@ def Register(request):
             a = condition(['id', 'name', 'inviter', 'digits'], req)
             if a[1]:
                 result = {}
-                if not customer.objects.filter(user_id=req['id']).exists():
-
-                    # تعیین یک دعوت کننده یا فروشگاه به عنوان دعوت کننده
-                    try:
-                        inviter = customer.objects.get(user_id=req['inviter'])
-                    except customer.DoesNotExist:
-                        inviter = customer.objects.get(user_id='0000')
-
-
-                    #create customer
-                    new_customer = customer(user_id=req['id'],
-                                            name=req['name'],
-                                            digits=req['digits'],
-                                            inviter=inviter,
-                                            contact_by=contact.objects.get(app_id=req['contact_id']))
-                    new_customer.save()
-                    result = {'result': 'customer created'}
+                i=1
+                if customer.objects.filter(digits=req['digits']).exists():
+                    result= {'result': 'customer exists'}
                 else:
-                    result = {'result': 'id is already exists'}
+                    if not customer.objects.filter(user_id=req['id']).exists():
 
-                return JsonResponse(result)
+                        # تعیین یک دعوت کننده یا فروشگاه به عنوان دعوت کننده
+                        try:
+                            inviter = customer.objects.get(user_id=req['inviter'])
+                        except customer.DoesNotExist:
+                            inviter = customer.objects.get(user_id='0000')
+
+
+                        #create customer
+                        new_customer = customer(user_id=req['id'],
+                                                name=req['name'],
+                                                digits=req['digits'],
+                                                inviter=inviter,
+                                                contact_by=contact.objects.get(app_id=req['contact_id']))
+                        new_customer.save()
+                        result = {'result': 'customer created'}
+                    else:
+                        result = {'result': 'id is already exists'}
+
+                return JsonResponse(result,safe=False)
             else:
                 return JsonResponse(a[0])
     else:
@@ -161,12 +165,12 @@ def buy(request):
                 # for i in discounts:
                 #     Discount += float(i.discount)
                 Discount = Customer.discount
-                json = {'customer_name':Customer.name,
-                        'customer_discount':Discount,
+                json = {'customer_name': Customer.name,
+                        'customer_discount': Discount,
                         'inviter_name': Customer.inviter.name,
-                        'inviter_id':Customer.inviter.user_id,
-                        'inviter_contact':Customer.inviter.contact_by.app_id,
-                        'inviter_digits':Customer.inviter.digits}
+                        'inviter_id': Customer.inviter.user_id,
+                        'inviter_contact': Customer.inviter.contact_by.app_id,
+                        'inviter_digits': Customer.inviter.digits}
                 return JsonResponse(json)
             # خرید مشتری
             elif req['part'] == '2':
@@ -201,14 +205,26 @@ def buy(request):
             # نمایش اطلاعات دعوت کننده
             if req['part'] == '1':
                 inviter = customer.objects.get(user_id=req['inviter'])
+                if product.objects.filter(digits=req['digits']).exists():
+                    result = 'use'
+                else:
+                    result = 'not_use'
                 json = {'inviter_name': inviter.name,
                         'inviter_contact': inviter.contact_by.app_id,
-                        'inviter_digits': inviter.digits}
+                        'inviter_digits': inviter.digits,
+                        'result': result
+                        }
                 return JsonResponse(json)
             # خرید
             elif req['part'] == '2':
                 inviter = customer.objects.get(user_id=req['inviter'])
                 discount = float(req['price'])*0.05
+
+                # بررسی اینکه ایا قبلا از 15% تخفیف خود استفاده کرده یا خیر
+                if req['use']:
+                    gift_d=False
+                else:
+                    gift_d=True
                 # اگر خود شخص ثبت نام کرد
                 if customer.objects.filter(user_id=req['customer']).exists():
                     buy = product.objects.create(time=datetime.now(),
@@ -216,8 +232,7 @@ def buy(request):
                                                  inviter_id=inviter,
                                                  price=req['price'],
                                                  discount=discount,
-                                                 gift_d=True,
-                                                 name=customer.objects.get(user_id=req['customer']).name)
+                                                 gift_d=gift_d)
                     buy.save()
                     dis = float(inviter.discount)+discount
                     inv = customer.objects.get(user_id=req['inviter'])
@@ -230,7 +245,7 @@ def buy(request):
                                                  inviter_id=inviter,
                                                  price=req['price'],
                                                  discount=discount,
-                                                 gift_d=True,
+                                                 gift_d=gift_d,
                                                  name=req['customer'])
                     buy.save()
                     dis = float(inviter.discount) + discount
@@ -245,6 +260,31 @@ def buy(request):
                 return JsonResponse(json)
 
 
+# سرچ مشتری های خرید کرده ولی ثبت نشده
+@csrf_exempt
+def namesearch(request):
+    if request.method == 'POST':
+        req = request.POST
+        C = []
+        if req['search']:
+            Customers = product.objects.filter(name__isnull=False, name__contains=req['search'])
+            for i in Customers:
+                same = False
+                for j in range(0, len(C)):
+                    if str(i.name) == str(C[j]['name']):
+                        same = True
+                        break
+                if not same:
+                    C.append({'name': i.name})
+        elif req['name']:
+            # تمام دعوت کننده های ثبت شده در خرید
+            inviters = product.objects.filter(name__contains=req["name"])
+            for inv in inviters:
+                C.append({'name': inv.inviter_id.name, 'user_id': inv.inviter_id.user_id})
+            result = {'result': 'customer use 15% off', 'inviter': C}
+        return JsonResponse({'buy': C}, safe=False)
+
+
 # شرط خالی بودن اطلاعات
 def condition(array, req):
     result = True
@@ -254,4 +294,3 @@ def condition(array, req):
             result = False
             message.append(i)
     return {'result': str(message).replace('[', '').replace(']', '')+' are empoty'}, result
-
