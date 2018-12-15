@@ -28,6 +28,8 @@ def Register(request):
                 i=1
                 if customer.objects.filter(digits=req['digits']).exists():
                     result= {'result': 'customer exists'}
+                elif customer.objects.filter(name=req['name']).exists():
+                    result = {'result': 'old customer'}
                 else:
                     if not customer.objects.filter(user_id=req['id']).exists():
 
@@ -49,7 +51,7 @@ def Register(request):
                     else:
                         result = {'result': 'id is already exists'}
 
-                return JsonResponse(result,safe=False)
+                return JsonResponse(result, safe=False)
             else:
                 return JsonResponse(a[0])
     else:
@@ -205,7 +207,7 @@ def buy(request):
             # نمایش اطلاعات دعوت کننده
             if req['part'] == '1':
                 inviter = customer.objects.get(user_id=req['inviter'])
-                if product.objects.filter(digits=req['digits']).exists():
+                if product.objects.filter(name=req['name']).exists():
                     result = 'use'
                 else:
                     result = 'not_use'
@@ -246,7 +248,7 @@ def buy(request):
                                                  price=req['price'],
                                                  discount=discount,
                                                  gift_d=gift_d,
-                                                 name=req['customer'])
+                                                 name=req['name'])
                     buy.save()
                     dis = float(inviter.discount) + discount
                     inv = customer.objects.get(user_id=req['inviter'])

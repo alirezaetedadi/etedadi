@@ -15,6 +15,7 @@
           <option value="api.models.default" />
           <option value="api.models.defa" />
           <option value="api.models.customer" />
+          <option value="api.views.django" />
         </list>
       </option>
     </inspection_tool>
