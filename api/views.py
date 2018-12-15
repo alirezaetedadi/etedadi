@@ -248,7 +248,8 @@ def buy(request):
                                                  price=req['price'],
                                                  discount=discount,
                                                  gift_d=gift_d,
-                                                 name=req['name'])
+                                                 name=req['customer'],
+                                                 digits=req['digits'])
                     buy.save()
                     dis = float(inviter.discount) + discount
                     inv = customer.objects.get(user_id=req['inviter'])
