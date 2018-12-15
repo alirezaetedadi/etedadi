@@ -66,8 +66,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/api/views.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="334">
-              <caret line="251" column="67" selection-start-line="251" selection-start-column="67" selection-end-line="251" selection-end-column="67" />
+            <state relative-caret-position="462">
+              <caret line="259" column="28" lean-forward="true" selection-end-line="299" />
               <folding>
                 <element signature="e#1#60#0" expanded="true" />
               </folding>
@@ -138,7 +138,7 @@
       <facet id="store/invalid/Django" />
     </ignored-facets>
   </component>
-  <component name="ProjectFrameBounds" extendedState="7">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="194" />
     <option name="y" value="-8" />
     <option name="width" value="1026" />
@@ -258,7 +258,7 @@
       <updated>1535546242197</updated>
       <workItem from="1544836194364" duration="1204000" />
       <workItem from="1544837576756" duration="2144000" />
-      <workItem from="1544852838279" duration="385000" />
+      <workItem from="1544852838279" duration="1111000" />
     </task>
     <task id="LOCAL-00001" summary="finish first app">
       <created>1544846756312</created>
@@ -271,11 +271,10 @@
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="3733000" />
+    <option name="totallyTimeSpent" value="4459000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
-    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.26096824" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -380,8 +379,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/api/views.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="334">
-          <caret line="251" column="67" selection-start-line="251" selection-start-column="67" selection-end-line="251" selection-end-column="67" />
+        <state relative-caret-position="462">
+          <caret line="259" column="28" lean-forward="true" selection-end-line="299" />
           <folding>
             <element signature="e#1#60#0" expanded="true" />
           </folding>
