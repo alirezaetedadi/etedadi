@@ -28,7 +28,7 @@ def Register(request):
                 i=1
                 if customer.objects.filter(digits=req['digits']).exists():
                     result= {'result': 'customer exists'}
-                elif customer.objects.filter(name=req['name']).exists():
+                elif product.objects.filter(name=req['name']).exists():
                     result = {'result': 'old customer'}
                 else:
                     if not customer.objects.filter(user_id=req['id']).exists():

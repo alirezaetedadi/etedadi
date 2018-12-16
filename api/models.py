@@ -28,6 +28,6 @@ class product(models.Model):
     discount = models.CharField(max_length=9, default=0)
     gift_d = models.BooleanField(default=False)
     use = models.BooleanField(default=False)
-    name = models.CharField(max_length=100, null=True)
-    digits = models.CharField(max_length=13, null=True)
+    name = models.CharField(max_length=100, null=True, blank=True)
+    digits = models.CharField(max_length=13, null=True, blank=True)
 
