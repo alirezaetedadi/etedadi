@@ -8,10 +8,15 @@ class contact(admin.ModelAdmin):
     list_display = ('app', 'app_id')
 
 class prudoct(admin.ModelAdmin):
-    list_display = ('time', 'user_id', 'name', 'digits', 'inviter_id', 'price', 'discount', 'gift_d', 'use')
+    list_display = ('time', 'user_id', 'name', 'digits', 'inviter_id', 'price', 'discount', 'gift_d')
+
+class gift(admin.ModelAdmin):
+    list_display = ('user_id', 'time', 'totalgift', 'usegift')
+
 
 admin.site.register(models.customer, customer)
 admin.site.register(models.product, prudoct)
 admin.site.register(models.contact, contact)
+admin.site.register(models.gift, gift)
 
 

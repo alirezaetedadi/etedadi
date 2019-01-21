@@ -27,7 +27,15 @@ class product(models.Model):
     price = models.CharField(max_length=9)
     discount = models.CharField(max_length=9, default=0)
     gift_d = models.BooleanField(default=False)
-    use = models.BooleanField(default=False)
     name = models.CharField(max_length=100, null=True, blank=True)
     digits = models.CharField(max_length=13, null=True, blank=True)
 
+class gift(models.Model):
+    user_id = models.ForeignKey(customer, on_delete=models.CASCADE)
+    time = models.DateTimeField()
+    totalgift = models.CharField(max_length=20)
+    usegift = models.CharField(max_length=20)
+
+
+class token(models.Model):
+    token = models.CharField(max_length=64)

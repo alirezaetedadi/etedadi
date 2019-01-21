@@ -1,10 +1,11 @@
 
 from django.http import JsonResponse, Http404, HttpResponse
-
 # Create your views here.
 from django.views.decorators.csrf import csrf_exempt
-from api.models import customer, contact, product
+from api.models import customer, contact, product, token
 from datetime import datetime
+import qrcode
+import secrets
 
 
 Html = "<h1 style='color:red;text-align:center;padding-top:100px'> ALIREZA ETEDADI</h1>"
@@ -29,7 +30,26 @@ def Register(request):
                 if customer.objects.filter(digits=req['digits']).exists():
                     result= {'result': 'customer exists'}
                 elif product.objects.filter(name=req['name']).exists():
-                    result = {'result': 'old customer'}
+                    if not customer.objects.filter(user_id=req['id']).exists():
+
+                        # تعیین یک دعوت کننده یا فروشگاه به عنوان دعوت کننده
+                        try:
+                            inviter = customer.objects.get(user_id=req['inviter'])
+                        except customer.DoesNotExist:
+                            inviter = customer.objects.get(user_id='0000')
+
+
+                        #create customer
+                        new_customer = customer(user_id=req['id'],
+                                                name=req['name'],
+                                                digits=req['digits'],
+                                                inviter=inviter,
+                                                contact_by=contact.objects.get(app_id=req['contact_id']))
+                        new_customer.save()
+                        result = {'result': 'old customer created'}
+                    else:
+                        result = {'result': 'id is already exists'}
+                    return JsonResponse(result)
                 else:
                     if not customer.objects.filter(user_id=req['id']).exists():
 
@@ -182,7 +202,8 @@ def buy(request):
                 discount = float(req['price']) * 0.05
                 # استفاده از تخفیف های خود
                 if req['discount_mode'] == 'on':
-                    Customer.discount = float(Customer.discount) - float(req['disprice'])
+                    # Customer.discount = float(Customer.discount) - float(req['disprice'])
+                    Customer.discount = 0
                     Customer.save()
                     # for i in discounts:
                     #     i.use = True
@@ -207,14 +228,14 @@ def buy(request):
             # نمایش اطلاعات دعوت کننده
             if req['part'] == '1':
                 inviter = customer.objects.get(user_id=req['inviter'])
-                if product.objects.filter(name=req['name']).exists():
-                    result = 'use'
-                else:
-                    result = 'not_use'
+                # if product.objects.filter(name=req['name']).exists():
+                #     result = 'use'
+                # else:
+                #     result = 'not_use'
                 json = {'inviter_name': inviter.name,
                         'inviter_contact': inviter.contact_by.app_id,
                         'inviter_digits': inviter.digits,
-                        'result': result
+                        # 'result': result
                         }
                 return JsonResponse(json)
             # خرید
@@ -223,12 +244,16 @@ def buy(request):
                 discount = float(req['price'])*0.05
 
                 # بررسی اینکه ایا قبلا از 15% تخفیف خود استفاده کرده یا خیر
-                if req['use']:
-                    gift_d=False
-                else:
-                    gift_d=True
+                # if req['use']:
+                #     gift_d=False
+                # else:
+                #     gift_d=True
                 # اگر خود شخص ثبت نام کرد
                 if customer.objects.filter(user_id=req['customer']).exists():
+                    if product.objects.filter(name=customer.objects.get(user_id=req['customer']).name).exists():
+                        gift_d = False
+                    else:
+                        gift_d = True
                     buy = product.objects.create(time=datetime.now(),
                                                  user_id=customer.objects.get(user_id=req['customer']),
                                                  inviter_id=inviter,
@@ -240,9 +265,13 @@ def buy(request):
                     inv = customer.objects.get(user_id=req['inviter'])
                     inv.discount = dis
                     inv.save()
-                    json = {'result': customer.objects.get(user_id=req['customer']).name}
+                    json = {'result': customer.objects.get(user_id=req['customer']).name,'inviter_discount': dis, 'gift': gift_d}
                 # اگر شخص ثبت نام نکرد
                 else:
+                    if product.objects.filter(name=req['customer']).exists():
+                        gift_d = False
+                    else:
+                        gift_d = True
                     buy = product.objects.create(time=datetime.now(),
                                                  inviter_id=inviter,
                                                  price=req['price'],
@@ -255,7 +284,7 @@ def buy(request):
                     inv = customer.objects.get(user_id=req['inviter'])
                     inv.discount = dis
                     inv.save()
-                    json = {'result': req['customer']}
+                    json = {'result': req['customer'], 'gift': gift_d}
                 full_discounts = product.objects.filter(inviter_id=inviter, use=False)
                 for i in full_discounts:
                     Full_discount += float(i.discount)
@@ -287,6 +316,40 @@ def namesearch(request):
             result = {'result': 'customer use 15% off', 'inviter': C}
         return JsonResponse({'buy': C}, safe=False)
 
+@csrf_exempt
+def Qrcodecreate(request):
+    qr=qrcode.QRCode(
+        version=1,
+        box_size=20,
+        border=20
+    )
+    data=request.POST['qrcode']
+    qr.add_data(data)
+    qr.make(fit=True)
+    img=qr.make_image()
+    img.save("F:/"+request.POST['qr']+".jpg")
+    return JsonResponse({'result':'qrcreate'})
+
+
+@csrf_exempt
+def viewdetail(request):
+    req = request.POST
+    json = {}
+    Inviter = []
+    count = 0
+    if request.method == 'POST':
+        detail = customer.objects.get(user_id=req['id'])
+        json['name'] = detail.name
+        inviters = customer.objects.filter(inviter=detail)
+        for i in inviters:
+            Inviter.append({'invited': i.name})
+            count += 1
+        json['invitednumber'] = count
+        json['invitername'] = Inviter
+        return JsonResponse(json)
+
+# **********************************************
+# **********************************************
 
 # شرط خالی بودن اطلاعات
 def condition(array, req):
@@ -297,3 +360,17 @@ def condition(array, req):
             result = False
             message.append(i)
     return {'result': str(message).replace('[', '').replace(']', '')+' are empoty'}, result
+
+
+@csrf_exempt
+def login(request):
+    if request.method == 'POST':
+        req = request.POST
+        if req['password'] == 'FjnUjw':
+            Token = secrets.token_hex()
+            token.objects.create(token=Token)
+            token.save()
+            return JsonResponse({'result': Token})
+        else:
+            return JsonResponse({'result': 'invalid Password'})
+        return False
